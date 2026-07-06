@@ -33,33 +33,29 @@
       <p>Necesitamos tener instalado en el ordenador, <code>Node.js</code></p>
       <p>Para crear un proyecto nuevo en <i>Astro</i>, entramos en la carpeta superior que contendrá la carpeta del
         proyecto, y ejecutamos el siguiente comando con la terminal (cmder):</p>
-      <pre><code>pnpm create astro@lastest</code></pre>
+      <pre><code>pnpm dlx create-astro@latest</code></pre>
       <p>Al lanzar el comando y una vez instalado lo necesario, <i>Astro</i> nos hará las siguientes preguntas:</p>
       <ol>
         <li>
-          <p>¿Dónde quieres crear tu aplicación?
+          <p><mark>dir</mark>¿Dónde quieres crear tu aplicación?
             (<code>Where should we create your new project?</code>)<br>
             Responde: <strong id="n1">aprendiendoastro</strong></p>
         </li>
         <li>
-          <p>¿Cómo quieres comenzar el proyecto?
+          <p><mark>tmpl</mark>¿Cómo quieres comenzar el proyecto?
             (<code>How would you like to start your new project?</code> )<br>
             Elige una de las siguientes opciones:</p>
           <ul>
-            <li>&gt; <code>Include sample files</code> (incluye archivos de ejemplo)</li>
+            <li>&gt; <code>A basic, helpful, starter project</code> (incluye archivos de ejemplo)</li>
             <li>- <code>Use blog template</code> (usa una plantilla de blog)</li>
-            <li>- <code>Empty</code> (proyecto vacío). <strong>Elije este tercer punto</strong></li>
+            <li>- <code>Use docs (starlight) template</code> (usa una plantilla de wikis, documentación)</li>
+            <li>- <code>Use minimal (empty template)</code> (proyecto vacío). <strong>Elije este punto</strong></li>
           </ul>
         </li>
         <li>
           <p>¿Deseas instalar dependencias? (<code>Install dependencies?</code>)<br> Selecciona <code>Yes</code>
             (<strong>Sí</strong>)
           </p>
-        </li>
-        <li>
-          <p>¿Deseas programar en TypeScript - JS tipado?
-            (<code>Do you plan to write TypeScript?</code>)
-            Selecciona <strong>No</strong>.</p>
         </li>
         <li>
           <p>Deseas inicializar un repositorio de GitHub? (<code>Initialize a new git repository?</code>)<br>Responde
