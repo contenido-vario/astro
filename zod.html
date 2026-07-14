@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+  <h1 class="det">Validar con Zod</h1>
+
+  <p>Zod es una librería de validación de esquemas integrada en Astro, que funciona de la mano con TypeScript. Se usa para asegurar que el <code>Frontmatter</code> de tus archivos de colección de contenidos, tenga exactamente la estructura y los tipos de datos que se espera.</p>
+
+  <p>Los tipos de campo que se usan en el <code>config.ts</code> de Astro con Zod, organizados por categorías pueden ser:</p>
+
+<h3>1. Tipos de Datos Primitivos</h3>
+<p>Son los bloques de construcción básicos para cualquier <code>Frontmatter</code>:</p>
+
+<table class="w-full border border-zinc-300">
+    <tr class="font-bold">
+        <td>Tipo en Zod</td>
+        <td>Tipo en JS/TS</td>
+        <td>Ejemplo en Frontmatter</td>
+        <td>Descripción</td>
+    </tr>
+    <tr>
+        <td>z.string()</td>
+        <td>string</td>
+        <td>title: 'El Gato Bombay'</td>
+        <td>Texto plano</td>
+    </tr>
+    <tr>
+        <td>z.number()</td>
+        <td>number</td>
+        <td>price: 19.99</td>
+        <td>Números enteros o decimales.</td>
+    </tr>
+    <tr>
+        <td>z.boolean()</td>
+        <td>boolean</td>
+        <td>isFeatured: true</td>
+        <td>Valores verdadero/falso</td>
+    </tr>
+    <tr>
+        <td>z.date()</td>
+        <td>Date</td>
+        <td>pubDate: 2026-07-14</td>
+        <td>Fechas. Astro las convierte automáticamente a objetos `Date` de JS.</td>
+    </tr>    
+</table>
+<br>
+<h3 class="mt-8">2. Estructuras de Datos Complejas</h3>
+
+<p>Guardar listas, objetos o estructuras anidadas:</p>
+
+<h4>Arreglos. Se debe indicar el tipo de datos del arreglo: <code>z.array(z.string())</code></h4> 
+
+<p>En el <code>Frontmatter:</code></p>
+
+<pre><code languaje="yaml">
+# Frontmatter
+tags: ["astro", "gatos", "blog"]
+</code></pre>
+
+<h4>Objetos anidados. Para agrupar propiedades relacionadas: <code>z.object({ ... })</code></h4>
+
+<pre><code languaje="typescript">
+// Zod
+author: z.object({
+  name: z.string(),
+  twitter: z.string()
+})
+</code></pre>
+
+<p>En el <code>Frontmatter</code></p>
+
+<pre><code languaje="yaml">
+# Frontmatter
+author:
+  name: 'Purina'
+  twitter: '@purina_es'
+</code></pre>
+
+<h4>Imágenes: <code>image()</code></h4>
+
+<p><i>Astro</i> inyecta una función especial en el esquema para resolver rutas de imágenes físicas:</p>
+
+<pre><code languaje="typescript">
+// Zod (en el config.ts de Astro)
+schema: ({ image }) => z.object({ cover: image(), }) // Valida que la imagen exista en la ruta indicada
+
+</code></pre>
+
+<h3>3. Modificadores Prácticos</h3>
+
+<p><code>Zod</code> permite flexibilizar las reglas para que no todo sea estrictamente obligatorio:</p>
+
+<h4>Campos opcionales <code>.optional()</code>:</h4>
+<p>El campo puede no estar en el archivo y no dará error (su valor será <code>undefined</code>).</p>
+
+<pre><code languaje="typescript">
+subtitle: z.string().optional()
+</code></pre>
+
+<h4>Valores por defecto <code>.default(valor)</code>:</h4>
+<p>Si el usuario no lo escribe en el <code>Frontmatter</code>, <i>Astro</i> le asignará automáticamente el valor que definas.</p>
+
+<pre><code languaje="typescript">
+draft: z.boolean().default(false)
+</code></pre>
+
+<h4>Permitir valores nulos <code>.nullable()</code>:</h4>
+
+<p>Permite que un valor sea explícitamente <code>null</code>.</p>
+
+<pre><code languaje="typescript">
+discountPrice: z.number().nullable()
+</code></pre>
+
+<h3>4. Validaciones y Tipos Avanzados</h3>
+
+<p>Para hacer que los datos sean aún más robustos:</p>
+
+<h4>Enumeraciones <code>z.enum([...])</code>:</h4>
+
+<p>Obliga que un valor sea <strong>únicamente</strong> uno de los elementos de la lista.</p>
+
+<pre><code languaje="typescript">
+category: z.enum(['comida', 'juguetes', 'accesorios'])
+</code></pre>
+
+<h4>Validaciones de Texto:</h4>
+<p>Se puede exigir formatos específicos para los <code>strings</code>, como correos electrónicos o URLs:</p>
+
+<pre><code languaje="typescript">
+email: z.string().email()      // Valida formato de correo
+link: z.string().url()         // Valida formato de URL (http/https)
+</code></pre>
+
+<h4>Validaciones Numéricas:</h4>
+
+<pre><code languaje="typescript">
+price: z.number().positive()   // Obliga a que sea mayor a 0
+age: z.number().int()          // Obliga a que sea un número entero
+</code></pre>
+
+
+  </main>
+</body>

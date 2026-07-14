@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+  <h1 class="det">Content Collections para crear colecciones de archivos</h1>
+  
+  <p>Las <strong>Content Collections</strong> (Colecciones de Contenido) son una característica nativa que ya viene integrada en el núcleo de <i>Astro</i> (desde la versión 2.0).</p>
+
+  <p>Lo único que debemos hacer para empezar a usar las Colecciones de Contenido es estructurar las carpetas de una forma específica y crear un archivo de configuración.</p>
+
+  <h3>Paso 1: Crear una carpeta llamada <code>Content</code> dentro de <code>src</code></h3>
+  
+  <p>Astro reserva una carpeta especial llamada <code>src/content/</code> para las colecciones. Cuando querramos que Astro genere automáticamente las entradas de un blog, los productos de una tienda, etc... sólo debemos guardarlos en subcarpetas dentro de la carpeta <code>content</code> (el nombre de la subcarpeta será el nombre de tu colección).</p>
+  
+  <p>Por ejemplo, para que Astro pueda leer automáticamente todas las entradas de un blog, podemos crear una subcarpeta llamada <code>entradas</code> o <code>posts</code>. La ruta completa a la colección sería por ejemplo, <code>src/content/posts</code>.</p>
+
+  <h3>Paso 2: Crear un archivo llamado <code>config.ts</code> en la carpeta <code>src/content/</code></h3>
+
+  <p></p>
+
+<pre><code languaje="typescript">
+import { defineCollection, z } from 'astro:content';
+
+const postsCollection = defineCollection({
+  type: 'content',
+  schema: ({ image }) => z.object({  // valida las imágenes del schema
+    title: z.string(),
+    pubDate: z.date(),
+    description: z.string(),
+    author: z.string(),
+    // Para indicar una imagen
+    image: z.object({
+      url: image(), // <--- Astro valida que el archivo exista de verdad
+      alt: z.string(),
+    }),
+    tags: z.array(z.string()),
+  }),
+});
+
+// Exportas tus colecciones para que Astro las reconozca
+export const collections = {
+  'posts': postsCollection,
+};
+</code></pre>
+
+  <p>Imaginemos ahora que tenemos dos colecciones: una colección de posts para un blog y otra de productos para una tienda. ¿Cómo quedaría el <code>config.ts</code>?</p>
+
+<pre><code languaje="typescript">
+import { defineCollection, z } from 'astro:content';
+
+// 1. DEFINIR LA COLECCIÓN DE POSTS
+const postsCollection = defineCollection({
+  type: 'content', // 'content' para archivos Markdown/MDX
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    pubDate: z.date(),
+    description: z.string(),
+    author: z.string(),
+    image: z.object({
+      url: image(), // Valida que la imagen de portada exista
+      alt: z.string(),
+    }),
+    tags: z.array(z.string()),
+  }),
+});
+
+// 2. DEFINIR LA COLECCIÓN DE PRODUCTOS
+const productosCollection = defineCollection({
+  type: 'content', // O puedes usar 'data' si prefieres archivos .json o .yaml en lugar de Markdown
+  schema: ({ image }) => z.object({
+    name: z.string(),
+    price: z.number(),
+    stock: z.number(),
+    category: z.enum(['comida', 'juguetes', 'accesorios']), // Restringe a estas categorías
+    isFeatured: z.boolean().default(false),
+    productImage: image(), // Aquí también puedes usar el validador de imágenes de Astro
+  }),
+});
+
+// 3. EXPORTAR TODAS LAS COLECCIONES
+// Las claves de este objeto (posts, productos) deben coincidir EXACTAMENTE con los nombres de tus carpetas
+
+export const collections = {
+  'posts': postsCollection,
+  'productos': productosCollection,
+};
+
+</code></pre>
+
+  <p>Ver: <a href="zod.html" target="_blank">Validar con la librería ZOD de <i>Astro</i></a></p>
+
+  <br>
+  <h3>Tipos de Colecciones</h3>
+  
+  <p>Las <i>Content Collections de Astro</i> están diseñadas nativamente para trabajar con dos tipos de formatos (<code>type: 'content'</code> y <code>type: 'data'</code>):</p>
+
+  <ol>
+    <li>Archivos de contenido <code>type: 'content'</code>: Archivos Markdown (.md) y MDX (.mdx).</li>
+    <li>Archivos de datos estructurados <code>type: 'data'</code>: Archivos JSON (.json) y YAML (.yaml).</li>
+  </ol> 
+
+  <h4>Si tienes código HTML que necesitas reutilizar o meter dentro de tus colecciones, usa archivos MDX.</h4>
+
+  <p>Si el contenido tiene que estar sí o sí dentro de una <code>Content Collection</code> para beneficiarse de la validación de Zod y la facilidad de usar <code>getCollection</code> y ya se tiene hecho en <code>.html</code> o el diseño requiere algo más de lo que ofrece MarkDown, la extensión <code>.mdx</code> es la mejor aliada</p>
+
+  <p>Al cambiar la extensión de los archivos de <code>.html</code> a <code>.mdx</code>, se puedes escribir HTML puro y duro dentro de ellos, en vez de sólo Markdown. <strong>MDX</strong> es una extensión que permite mezclar Markdown, componentes de Astro y HTML estándar en un mismo archivo.</p>
+
+  <p>Para que Astro entienda los archivos <code>.mdx</code> en un proyecto, se necesita añadir la integración oficial</p>
+
+  <pre><code languaje="bash">
+pnpm astro add mdx
+  </code></pre>
+
+  </main>
+</body>
+</html>
