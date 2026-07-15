@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+  <h1 class="det">Páginas Dinámicas</h1>
+
+  <p>Antes de comenzar la explicación es importantísimo recordar que <i>Astro</i>, mapea cada <strong>archivo</strong> de una Colección de Datos <strong>basándose en su nombre e ignorando su extensión</strong>. Astro llama a cada nombre de archivo <code>slug</code>.</p>
+  
+  <p>En lugar de dedicarnos a enlazar archivo a archivo de nuestra colección, creamos un archivo de página dinámica al cual llamaremos <code>[slug].astro</code> y que nos permitirá renderizar cada archivo de una colección. Atendiendo a esta filosofía, para poder acceder a cada uno de los post, se crea un archivo con el nombre <code>[page].astro</code> para hacer la portada del blog/tienda.</p>
+
+  <p>La estructura de las páginas con dos colecciones (posts y productos) para Blog y tienda, quedaría así:</p>
+
+<pre><code languaje="text">
+src/
+└── pages/
+    ├── blog/
+    │    ├── [page].astro   <-- Portada de Blog/Índice de páginas (blog/1, blog/2...)
+    │    └── [slug].astro   <-- Post individual
+    ├── about.astro         <-- ¿Quiénes somos?
+    ├── contacto.astro      <-- Página de contacto
+    ├── index.astro         <-- La página de inicio de la web
+    ├── tienda/
+    │    ├── [page].astro   <-- Portada de la tienda (Galería de productos)
+    │    └── [slug].astro   <-- Productos individuales
+    
+</code></pre>
+
+  <h3>Archivo de página dinámica para renderizar elementos de la colección</h3>
+
+  <p>Para renderizar el archivo sólo se necesita un archivo de página dinámica como éste:</p>
+
+<pre><code languaje="html">
+---
+
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets'; // Usamos el componente optimizado de Astro
+import DefaultLayout from '../../layouts/DefaultLayout.astro';
+
+// 1. Generamos las rutas para cada post de la colección
+export async function getStaticPaths() {
+  const posts = await getCollection('posts');
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+// 2. Recuperamos el post específico para esta página
+const { post } = Astro.props;
+
+// 3. Obtenemos el contenido del post (el cuerpo del Markdown/HTML)
+const { Content } = await post.render();
+---
+
+&lt;!-- 4. Maquetamos el diseño del post / producto -->
+&lt;DefaultLayout title={post.data.title}>
+  &lt;h1 class="text-3xl font-bold my-4">{post.data.title}&lt;/h1>
+  &lt;p>{post.data.description}&lt;/p>
+  
+  &lt;figure>
+    &lt;!-- Usamos la herramienta de imágenes optimizadas de Astro -->
+    &lt;Image 
+      src={post.data.image.url} 
+      alt={post.data.image.alt}
+      class="postImg"
+      width={800} 
+      height={450}
+    />
+  &lt;/figure>
+  &lt;hr>
+  &lt;!-- El componente &lt;Content /> inyecta todo el cuerpo del .mdx o .md aquí -->
+  &lt;article class="prose">
+    &lt;Content />
+  &lt;/article>
+
+  &lt;p>&lt;a href="/blog">Entradas del blog&lt;/a>&lt;/p>
+&lt;/DefaultLayout>    
+
+</code></pre>
+
+  <p>Donde:</p>
+  <ol>
+    <li><code>post.data</code> guarda todas las propiedades del Frontmatter de cada archivo (en el caso del ejemplo, los posts) validadas por <code>Zod</code>.</li>
+    <li><code>&lt;Content/></code> en lugar de<code>&lt;slot /></code>: En lugar de usar un &lt;slot /> genérico de HTML (como en los layouts), se ejecuta una función <code>await post.render()</code> en el servidor para obtener el componente especial <code>&lt;Content/></code>. Al renderizarlo, <i>Astro</i> inyecta ahí todo el contenido Markdown o HTML del archivo.</li>
+    <li>La estructura/estilo del archivo, se toman del <code>Layout</code> importado.</li>
+  </ol>
+
+  <p>Si en el futuro se decide cambiar el diseño de todos los archivos de una colección, se haces en un solo archivo de Astro: (<code>[slug].astro</code>) sin tocar un solo Markdown/HTML de la misma.</p>
+
+  <hr class="my-8">
+
+  <h3>Archivo de página dinámica para la paginación (Portada de la Colección)</h3>
+
+  <p>Para crear un índice con páginas numeradas usaremos un archivo dinámico que se va a llamar <code>[page].astro</code>. Al llamar al archivo <code>[page].astro</code> (con la palabra reservada <code>page</code> entre corchetes), Astro entiende que va a dividir tu lista de posts en páginas.</p>
+
+  <p>El código de este archivo que genere el índice automáticamente, es el siguiente:</p>
+
+<pre><code languaje="html">
+---
+// src/pages/blog/[page].astro
+import { getCollection } from 'astro:content';
+import DefaultLayout from '../../layouts/DefaultLayout.astro';
+
+// 1. Esta función le dice a Astro cómo dividir los posts
+export async function getStaticPaths({ paginate }) {
+  const todosLosPosts = await getCollection('posts');
+  
+  // Ordenar los posts por fecha (del más nuevo al más viejo)
+  // Esta función cambia según el propósito de la colección
+  const postsOrdenados = todosLosPosts.sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  );
+
+  // Paginar: Queremos mostrar, por ejemplo, 6 posts por página
+  // El valor de pageSize lo indica.
+  return paginate(postsOrdenados, { pageSize: 6 });
+}
+
+// 2. Astro pasa automáticamente la información de la página en la prop "page"
+const { page } = Astro.props;
+---
+
+&lt;DefaultLayout title={`Blog - Página ${page.currentPage}`}>
+  &lt;h1>Blog sobre Gatitos&lt;/h1>
+
+  &lt;!-- 3. Pintamos los posts de la página actual -->
+  &lt;div class="posts-grid">
+    {page.data.map((post) => (
+      &lt;article class="post-card">
+        &lt;h2>{post.data.title}&lt;/h2>
+        &lt;p>{post.data.description}&lt;/p>
+        &lt;a href={`/blog/${post.slug}`}>Leer más&lt;/a>
+      &lt;/article>
+    ))}
+  &lt;/div>
+
+  &lt;!-- 4. Botones de Navegación del Índice -->
+  &lt;nav class="paginacion">
+    {page.url.prev ? &lt;a href={page.url.prev}>&larr; Anterior&lt;/a> : <span class="disabled">&larr; Anterior&lt;/span>}
+    
+    &lt;span class="pagina-actual">Página {page.currentPage} de {page.lastPage}&lt;/span>
+    
+    {page.url.next ? &lt;a href={page.url.next}>Siguiente &rarr;&lt;/a> : &lt;span class="disabled">Siguiente &rarr;&lt;/span>}
+  &lt;/nav>
+&lt;/DefaultLayout>
+
+&lt;style>
+  .posts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+  .post-card { border: 1px solid #eee; padding: 1.5rem; border-radius: 8px; }
+  .paginacion { display: flex; justify-content: space-between; align-items: center; margin-top: 3rem; }
+  .disabled { color: #ccc; cursor: not-allowed; }
+&lt;/style>
+</code></pre>
+
+<p><code>pageSize</code> es el límite de tarjetas (cards) de posts que se mostrarán en cada página del índice.</p>
+
+<p>Si en una colección se tienen por ejemplo, 15 posts en total y se configura <code>pageSize: 6</code>, <i>Astro</i> generará 3 Urls de forma automática:</p>
+
+<ol>
+  <li><b>Página 1 (/blog/1)</b>: Mostrará los posts del 1 al 6 (6 cards).</li>
+  <li><b>Página 2 (/blog/2)</b>: Mostrará los posts del 7 al 12 (6 cards).</li>
+  <li><b>Página 3 (/blog/3)</b>: Mostrará los posts restantes del 13 al 15 (3 cards).</li>
+</ol>
+
+<p>Astro calcula todo esto de manera automática. Solo con cambiar el número de <code>pageSize</code> a 9, 12, etc..., se reestructurarán todas las páginas y los enlaces de <code>Anterior</code> y <code>Siguiente</code> al compilar la web.</p>
+  </main>
+</body>
+</html>

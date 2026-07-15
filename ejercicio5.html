@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+    <h1 class="det">Ejercicio: Blog</h1>
+    <h3>Parte 1</h3>
+    <p>Este ejercicio lo haremos en dos partes. Primero, crearems los posts de un blog. Os dejo un modelo. Escoged qué tema para el blog deseáis crear. Podéis crear los contenidos de los posts en <i>Obsidian</i>, que os será más cómodo, y luego lo pegan en <i>Astro</i>.</p>
+    <p>Deberéis crear al menos 4 posts, para poder apreciar el resultado.</p>
+
+<details><summary>Ejemplo de Post en MarkDown</summary>
+<pre><code languaje="markdown">
+---
+# Frontmatter del post
+layout: ../../layouts/MarkdownPostLayout.astro
+title: 'El Gato Bombay'
+pubDate: 2026-07-01
+description: 'Es un gato elegante, pero fuerte y tiene una naturaleza curiosa, activa y muy afectuosa.'
+author: 'Purina'
+image:
+  url: '../../assets/gato-bombay.webp'
+  alt: 'Gato Bombay'
+tags: ["astro", "bloguear", "gatos", "bombay"]
+---
+
+# El Gato bombay
+
+El gato bombay parece una pantera en miniatura. Es un gato elegante, pero fuerte, y tiene una naturaleza curiosa, activa y muy afectuosa. Le gusta pasar tiempo con sus dueños y también puede ser muy sociable con otras personas. Tan extrovertido como un perro, el gato de raza Bombay, conocido por su pelaje negro intenso, no tiene pelo largo, sino que su manto es corto y liso, y es perfecto hasta para propietarios primerizos.
+
+## Aspecto
+
+De complexión mediana y musculosa, el gato bombay presenta un manto de color negro azabache con un lustre y brillo acharolados, una cabeza redondeada con orejas de la misma forma y un hocico ancho. Tal vez la característica más llamativa del gato bombay son sus espléndidos ojos cobrizos o dorados, redondos, grandes y expresivos. Entre las principales características de un gato de esta raza destaca precisamente ese pelaje brillante y uniforme, exclusivo de este felino, ya que solo existen ejemplares de color negro intenso.
+
+## Personalidad
+
+El Bombay es un gato simpático, travieso, con propensión a inventar nuevas formas de divertirse si se le da la oportunidad. Es un animal extrovertido, inteligente y sociable, que se llevará bien con la familia, con otras mascotas y con sus amigos. Los Bombays destacan precisamente por este carácter curioso y afectuoso, que los convierte en excelentes compañeros.
+
+Esperanza de vida: De 12 a 20 años
+Peso: Entre 3,6 y 6,8 kg
+Colores: Pelaje negro azabache muy brillante que parece charol.
+
+### ¿Sabías qué son?
+
+- Curiosos y juguetones
+- Sociables y dependientes
+- De constitución media
+- Requiere aseo una vez por semana
+- Necesita algo de espacio al aire libre
+- No suele presentar problemas de salud
+
+## Curiosidades
+
+- Puede nacer con un color totalmente blanco, pero no será duradero. Su pelaje se oscurecerá en sus primeros meses de vida y será totalmente negro cuando sea adulto.
+- El nombre «bombay» fue elegido por el criador por el extraordinario parecido de esta raza con los leopardos negros de Bombay en la India.
+- Aunque las crías del bombay americano y británico son muy similares, sí tienen una diferencia clara. El bombay estadounidense tiene ojos cobrizos, mientras que el británico suele tener ojos verdes.
+</code></pre>
+</details>
+
+  </main>
+</body>
+
+</html>
