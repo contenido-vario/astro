@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+  <h1 class="det">Administración del Blog con decapcms</h1>
+  
+  <p><i>decapcms</i> es una excelente elección para crear un blog sencillo a las empresas. Brinda una interfaz muy limpia para que el o los administradores del blog para escribir sus publicaciones, mientras a ti te mantiene todo guardado como archivos `.md` en tu proyecto.</p>
+
+  <p class="text-center text-xl"><a href="https://decapcms.org/">https://decapcms.org/</a></p>
+
+  <p>Utilizar <i>decapcms</i> en tu proyecto de astro</p>
+  
+  <h3 class="mt-8 mb-6">Paso 1: Crear la carpeta del administrador</h3>
+  <ul>
+  <li>Abre un nuevo proyecto de Astro.</li>
+  <li>Entra al proyecto, ve a la carpeta <code>public/</code> y crea una subcarpeta llamada <code>admin</code>.</li>
+  <li>Dentro de <code>public/admin/</code>, crea dos archivos:</li>
+  <li>
+    <ol>
+      <li>index.html</li>
+      <li>config.yml</li>
+    </ol>
+  </li>
+  </ul>
+
+  <h3 class="mt-8 mb-6">Paso 2: El archivo <code>public/admin/index.html</code></h3>
+  
+  <p>Abre <code>public/admin/index.html</code> y pega este código (es la interfaz de Decap CMS cargada desde un CDN estático):</p>
+
+  <pre><code languaje="html">
+&lt;!DOCTYPE html>
+&lt;html>
+  &lt;head>
+    &lt;meta charset="utf-8" />
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    &lt;title>Panel de Administración</title>
+  &lt;/head>
+  &lt;body>
+    &lt;!-- Carga la app de Decap CMS -->
+   &lt;script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js">&lt;/script>
+  &lt;/body>
+&lt;/html>
+  </code></pre>
+
+  <h3 class="mt-8 mb-6">Paso 3: El archivo <code>public/admin/config.yml</code></h3>
+  
+  <p>Abre <code>public/admin/config.yml</code> y define la estructura de tus publicaciones. Puedes adaptar las rutas y campos a tu gusto:</p>
+
+  <pre><code languaje="yaml">
+  backend:
+  name: git-gateway
+  branch: main # O "master", según tu rama de GitHub
+
+media_folder: "src/assets/images" # Dónde se almacenarán las imágenes
+public_folder: "src/assets/images" # Atributo src para los medios cargados
+
+collections:
+  - name: "blog"
+    label: "Entradas del Blog"
+    folder: "src/content/posts"   # Ruta exacta a tus archivos .md
+    create: true                # Permite al usuario crear nuevos posts
+    slug: "{{slug}}"
+    fields:
+      - { label: "Título", name: "title", widget: "string" }
+      - { label: "Fecha de publicación", name: "pubDate", widget: "datetime" }
+      - { label: "Descripción", name: "description", widget: "text" }
+      - { label: "Autor", name: "author", widget: "string", default: "Admin" }
+      - { label: "Imagen destacada", name: "image", widget: "image", required: false }
+      - { label: "Etiquetas", name: "tags", widget: "list", required: false }
+      - { label: "Contenido", name: "body", widget: "markdown" }
+  </code></pre>
+
+  <h3 class="mt-8 mb-6">Paso 4: Probar en local</h3>
+
+  <p>Para poder probar la interfaz en local sin necesidad de configurar autenticaciones de GitHub:</p>
+
+  <ol>
+    <li>
+      <p>Instala un pequeño proxy local para pruebas como administrador:</p>
+      <code languaje="bash"><pre>pnpm add -D decap-server</pre></code>
+    </li>
+    <li>
+      <p>Añade un script a tu <code>package.json</code>:</p>
+      <code languaje="json"><pre>
+"scripts": {
+  "dev": "astro dev",
+  "cms": "decap-server"
+}        
+      </pre></code>
+    </li>
+    <li>
+      <p>Abre dos terminales:</p>
+      <ul>
+        <li>En la primera ejecuta: <code>pnpm dev</code></li>
+        <li>En la segunda ejecuta: <code>pnpm cms</code></li>
+      </ul>
+    </li>
+    <li>
+      <p>Entra en tu navegador a: <code>http://localhost:4321/admin/index.html</code></p>
+      <p>Decap crea automáticamente el archivo Markdown en tu proyecto, pero Astro necesita dos cosas en el código para que esa entrada se vea en la web:</p>
+      <ul>
+        <li><b>La página dinámica de la entrada individual</b> (para ver el post completo al hacer clic)</li>
+        <li><b>La página de listado de entradas</b> (un índice o blog donde se listen todos los posts creados).</li>
+      </ul>
+    </li>    
+  </ol>
+
+  <p>Recordemos cómo se debe tratar una colección en Astro para que todo conecte automáticamente:</p>
+
+  <h3 class="mt-8 mb-6">1. La plantilla para el post individual</h3>
+
+  <p>Crear un archivo en esta ruta del proyecto: <code>src/pages/posts/[slug].astro</code> <em>(o la ruta donde le dijiste a <i>Decap</i> que guardara los archivos)</em>.</p>
+
+  <p>Pega un código como este para que lea cualquier post que el usuario cree desde <i>Decap</i>:</p>
+
+<pre><code languaje="js">
+import { getCollection } from 'astro:content';
+
+// 1. Obtener todos los posts de la colección
+export async function getStaticPaths() {
+  const posts = await getCollection('posts'); // 'posts' debe coincidir con el nombre en tu src/content/config.ts
+  return posts.map(post => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content } = await post.render();
+---
+
+&lt;h1>{post.data.title}&lt;/h1>
+&lt;p>&lt;small>{post.data.pubDate}&lt;/small>&lt;/p>
+
+<!-- Muestra el contenido Markdown redactado en Decap CMS -->
+&lt;Content />    
+</code></pre>
+
+ <h3 class="mt-8 mb-6">2. La página con el listado de todas las entradas</h3>  
+
+ <p>Crea o edita la página de tu blog (por ejemplo, <code>src/pages/blog.astro</code>):</p>
+ <pre><code languaje="js">
+---
+import { getCollection } from 'astro:content';
+
+// Obtener todas las entradas guardadas
+const allPosts = await getCollection('posts');
+---
+
+&lt;h1>Blog&lt;/h1>
+
+&lt;ul>
+  {allPosts.map(post => (
+    &lt;li>
+      &lt;a href={`/posts/${post.slug}/`}>
+        &lt;h2>{post.data.title}&lt;/h2>
+      &lt;/a>
+      &lt;p>{post.data.description}&lt;/p>
+    &lt;/li>
+  ))}
+&lt;/ul>  
+</code></pre>
+
+ <h3 class="mt-8 mb-6">¿Cómo se conecta todo?</h3>
+
+ <ul>
+  <li><p>⬥ El usuario crea o edita un post en <b>Decap CMS</b>.</p></li>
+  <li><p>⬥ <i>Decap</i> crea un archivo <code>.md</code> dentro de la carpeta indicada en <code>folder: "src/content/posts"</code></p></li>
+  <li><p>⬥ Astro detecta ese nuevo <code>.md</code> mediante <code>getCollection('posts')</code>.</p></li>
+  <li><p>⬥ En la siguiente compilación, Astro genera automáticamente la URL del post y lo añade al listado de la página <code>/blog</code>.</p></li>
+ </ul>
+
+  </main>
+</body>
+</html>
