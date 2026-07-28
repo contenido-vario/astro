@@ -21,7 +21,7 @@
 
     <p>En lugar de dedicarnos a enlazar archivo a archivo de nuestra colección, creamos un archivo de página dinámica al
       cual llamaremos <code>[id].astro</code> y que nos permitirá renderizar cada archivo de una colección. Atendiendo a
-      esta filosofía, para poder acceder a cada uno de los post, se crea un archivo con el nombre <code>[...page].astro</code> para hacer la portada del blog/tienda.
+      esta filosofía, para poder acceder a cada uno de los post, se crea un archivo con el nombre <code>[page].astro</code> para hacer la portada del blog/tienda.
     </p>
 
     <p>La estructura de las páginas con dos colecciones (posts y productos) para Blog y tienda, quedaría así:</p>
@@ -30,7 +30,7 @@
 src/
 └── pages/
     ├── blog/
-    │    ├── [...page].astro   <-- Portada de Blog/Índice de páginas (blog/1, blog/2...)
+    │    ├── [page].astro   <-- Portada de Blog/Índice de páginas (blog/1, blog/2...)
     │    └── [id].astro        <-- Post individual
     ├── about.astro            <-- ¿Quiénes somos?
     ├── contacto.astro         <-- Página de contacto
@@ -114,7 +114,7 @@ const { Content } = await render(post);
     <h3>Archivo de página dinámica para la paginación (Portada de la Colección)</h3>
 
     <p>Para crear un índice con páginas numeradas usaremos un archivo dinámico que se va a llamar
-      <code>[...page].astro</code>. Al llamar al archivo <code>[...page].astro</code> (con el texto <code>...page</code>
+      <code>[page].astro</code>. Al llamar al archivo <code>[page].astro</code> (con el texto <code>page</code>
       entre corchetes), Astro entiende que va a dividir la lista de elementos de la colección, en páginas.
     </p>
 
