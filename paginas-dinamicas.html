@@ -44,34 +44,29 @@ src/
 
 <pre><code languaje="html">
 ---
-
-import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets'; // Usamos el componente optimizado de Astro
+import { getCollection, render } from 'astro:content'; // <-- 1. Importamos 'render' aquí
+import { Image } from 'astro:assets'; 
 import DefaultLayout from '../../layouts/DefaultLayout.astro';
 
-// 1. Generamos las rutas para cada post de la colección
 export async function getStaticPaths() {
   const posts = await getCollection('posts');
   return posts.map(post => ({
-    params: { slug: post.slug },
+    params: { slug: post.id }, // Nota: en esta versión a veces se usa id en lugar de slug dependiendo de cómo cargues el glob, pero el concepto es idéntico
     props: { post },
   }));
 }
 
-// 2. Recuperamos el post específico para esta página
 const { post } = Astro.props;
 
-// 3. Obtenemos el contenido del post (el cuerpo del Markdown/HTML)
-const { Content } = await post.render();
+// 2. Usamos la función render() pasándole el post entero
+const { Content } = await render(post);
 ---
 
-&lt;!-- 4. Maquetamos el diseño del post / producto -->
 &lt;DefaultLayout title={post.data.title}>
-  &lt;h1 class="text-3xl font-bold my-4">{post.data.title}&lt;/h1>
-  &lt;p>{post.data.description}&lt;/p>
+  &lt;h1 class="text-3xl font-bold my-4">{post.data.title}</h1>
+  &lt;p>{post.data.description}</p>
   
   &lt;figure>
-    &lt;!-- Usamos la herramienta de imágenes optimizadas de Astro -->
     &lt;Image 
       src={post.data.image.url} 
       alt={post.data.image.alt}
@@ -81,13 +76,13 @@ const { Content } = await post.render();
     />
   &lt;/figure>
   &lt;hr>
-  &lt;!-- El componente &lt;Content /> inyecta todo el cuerpo del .mdx o .md aquí -->
+  
   &lt;article class="prose">
-    &lt;Content />
+    <Content />
   &lt;/article>
 
-  &lt;p>&lt;a href="/blog">Entradas del blog&lt;/a>&lt;/p>
-&lt;/DefaultLayout>    
+  &lt;p><a href="/blog">Entradas del blog</a></p>
+&lt;/DefaultLayout>  
 
 </code></pre>
 

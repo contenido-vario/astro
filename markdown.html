@@ -24,6 +24,7 @@
 <pre><code languaje="yaml">
 ---
 # Frontmatter
+layout: ../../layouts/MarkdownPostLayout.astro
 title: 'El Gato Bombay'
 pubDate: 2022-07-01
 description: 'Parece una pantera en miniatura. Es un gato elegante, pero fuerte y tiene una naturaleza curiosa, activa y muy afectuosa.'
@@ -37,33 +38,9 @@ tags: ["astro", "bloguear", "gatos", "bombay"]
 CODIGO md ó mdx DEL POST
 
 </code></pre>
-<p>Se deberá tener el siguiente archivo <code>src/content/config.ts</code>:</p>
+<p>Se deberá tener el <a href="content-collections2.html" target="_blank">siguiente archivo</a>: <code>/content.config.ts</code> (Astro 7.1+)</p>
 
-<pre><code languaje="TypeScript">
-import { defineCollection, z } from 'astro:content';
 
-const postsCollection = defineCollection({
-  type: 'content',
-  schema: ({ image }) => z.object({  // valida las imágenes del schema
-    title: z.string(),
-    pubDate: z.date(),
-    description: z.string(),
-    author: z.string(),
-    // Para indicar una imagen
-    image: z.object({
-      url: image(), // <--- Astro valida que el archivo exista de verdad
-      alt: z.string(),
-    }),
-    tags: z.array(z.string()),
-  }),
-});
-
-// Exportar la colección
-export const collections = {
-  'posts': postsCollection,
-};
-
-</code></pre>
 
 <p>Dentro de la carpeta <code>post</code>, se pueden mezclar perfectamente archivos <code>.md</code> y <code>.mdx</code>, aunque <mark>se deberá tener en cuenta lo siguiente</mark>: <i>Astro</i>, mapea el <code>id</code> (al cual llama <code>slug</code>) de cada <code>post</code> <strong>basándose en su nombre del archivo e ignorando su extensión</strong>. Por tanto hay que tener cuidado de no tener dos archivos con el mismo nombre (ejemplo: <code>mi-post.md</code> y <code>mi-post.mdx</code>), para no causar un conflicto de nombres.</p>
 

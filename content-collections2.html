@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+  <h1 class="det">Content Collections Astro 7.1+ (2026/07)</h1>
+  
+  <p>Las <strong>Content Collections</strong> (Colecciones de Contenido) son una característica nativa que ya viene integrada en el núcleo de <i>Astro</i> (desde la versión 2.0).</p>
+
+  <p>Lo único que debemos hacer para empezar a usar las Colecciones de Contenido es estructurar las carpetas de una forma específica y crear un archivo de configuración.</p>
+
+  <h3>Paso 1: Crear un <strong>archivo</strong> llamado <code>content.config.ts</code> en la raiz del proyecto</h3>
+  
+  <p>A partir de la versión 7.1 de Astro, el archivo de configuración pasa a llamarse <code>content.config.ts</code> y debe estar ubicado directamente en la raíz del proyecto (<mark>fuera de src</mark>), y cada colección requiere obligatoriamente un <code>loader</code> (como glob) para indicarle a Astro dónde buscar esos archivos.</p>
+
+  <p>El cambio principal que hicieron (conocido como la Content Layer o capa de contenido) se debió a una razón muy clara: querían que Astro no dependiera únicamente de los archivos Markdown guardados en el ordenador, sino que pudiera traer contenido desde cualquier sitio de forma unificada.</p>
+
+  <p>Antes, el sistema de colecciones estaba limitado a leer los archivos de texto que tenías dentro de la carpeta <code>src/content</code>.</p>
+
+  <p>La idea detrás del cambio es darle mucha más potencia al framework para conectar con cualquier fuente de datos moderna. Con este nuevo cambio, el equipo de Astro busca:</p>
+
+  <ol>
+    <li>Flexibilidad: Permitir que los datos de una colección no solo vengan de archivos locales, sino también de bases de datos externas, un CMS en la nube (como Notion o Strapi) o una API de internet, usando siempre las mismas herramientas y validaciones.</li>
+
+    <li>Mejor rendimiento y escalabilidad: Manejar mejor los proyectos grandes donde hay miles de artículos o páginas, guardando la información de manera más eficiente al compilar la web.</li>
+  </ol>
+  
+  <h4>Cambios:</h4>
+  
+  <p>El <strong>loader</strong> es el nuevo puente entre los archivos físicos y el sistema de colecciones de Astro:</p>
+  <ol>
+    <li>Los archivos <code>.md</code>, <code>.mdx</code> deben estar guardados en una carpeta dentro de  <code>./src/content/</code> ejemplo: <code>./src/content/posts</code>.</li>
+
+    <li>La función <code>glob</code>: Actúa como un rastreador que entra en esa carpeta, encuentra todos los archivos <code>.md</code>/<code>.mdx</code>  y se los entrega a Astro.</li>
+
+    <li>El esquema zod (<code>schema</code>): Una vez que el <code>glob</code> encuentra los archivos, el esquema comprueba que todos tengan su título, fecha y datos correctos.</li>
+  </ol>
+
+  <h3>Paso 2: Contenido del nuevo archivo <code>content.config.ts</code></h3>
+
+
+<pre><code languaje="typescript">
+import { defineCollection} from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod'; // <-- CAMBIO 
+
+const posts = defineCollection({
+  loader: glob({ 
+    pattern: '**/*.{md,mdx}', 
+    base: './src/content/posts' 
+  }),
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    pubDate: z.coerce.date(),
+    description: z.string(),
+    author: z.string(),
+//  Para indicar una imagen
+    image: z.object({
+      url: image(), // <--- Astro valida que el archivo exista de verdad
+      alt: z.string(),
+    }),
+    tags: z.array(z.string()),
+    cover: image().optional(),
+  }),
+});
+
+export const collections = { posts };
+</code></pre>
+
+<p>Imaginemos ahora que tenemos dos colecciones: una colección de posts para un blog y otra de productos para una tienda. ¿Cómo quedaría el <code>content.config.ts</code> con el cambio?</p>
+
+<ol>
+  <li><strong>Cada colección su loader</strong>: Cada una apunta a su propia carpeta dentro de <code>src/content/</code> (por ejemplo, <code>src/content/posts/</code> y <code>src/content/productos/</code>).</li>
+
+  <li><strong>El objeto <code>collections</code> define el nombre de la colección</strong>: Las claves que se ponen ahí (posts y productos) son las que luego se usarán en el código para llamar a cada colección (por ejemplo: <code>getCollection('posts')</code> o <code>getCollection('productos')</code>).</li>
+</ol>
+
+<pre><code languaje="typescript">
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
+
+// 1. Definir la colección de posts
+  const postsCollection = defineCollection({
+  loader: glob({ 
+    pattern: '**/*.{md,mdx}', 
+    base: './src/content/posts' 
+  }),
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    pubDate: z.coerce.date(),
+    description: z.string(),
+    author: z.string(),
+    image: z.object({
+      url: image(),
+      alt: z.string(),
+    }),
+    tags: z.array(z.string()),
+  }),
+});
+
+// 2. Definir la colección de productos 
+// (si se usan archivos JSON/YAML para productos,
+//  se puede cambiar el patrón a '**/*.json')
+const productosCollection = defineCollection({
+  loader: glob({ 
+    pattern: '**/*.{md,mdx}', 
+    base: './src/content/productos' 
+  }),
+  schema: ({ image }) => z.object({
+    name: z.string(),
+    price: z.number(),
+    stock: z.number(),
+    category: z.enum(['comida', 'juguetes', 'accesorios']),
+    isFeatured: z.boolean().default(false),
+    productImage: image(),
+  }),
+});
+
+// 3. Exportar todas las colecciones juntas
+export const collections = {
+  posts: postsCollection,
+  productos: productosCollection,
+};
+
+</code></pre>
+
+  <p>Ver: <a href="zod.html" target="_blank">Validar con la librería ZOD de <i>Astro</i></a></p>
+
+  <br>
+  <h3>Tipos de Colecciones</h3>
+  
+  <p>En la versión actual (Astro 7.1+), el manejo de archivos Markdown, MDX o JSON se hace directamente configurando el <code>loader</code> de <code>glob</code> adecuado para cada tipo de extensión de archivo, sin necesidad de declarar un type.</p>
+
+  <ol>
+    <li>Archivos de contenido: Archivos Markdown (.md) y MDX (.mdx).</li>
+    <li>Archivos de datos estructurados: Archivos JSON (.json) y YAML (.yaml).</li>
+  </ol> 
+
+  <h4>Si tienes código HTML que necesitas reutilizar o meter dentro de tus colecciones, usa archivos MDX.</h4>
+
+  <p>Si el contenido tiene que estar sí o sí dentro de una <code>Content Collection</code> para beneficiarse de la validación de Zod y la facilidad de usar <code>getCollection</code> y ya se tiene hecho en <code>.html</code> o el diseño requiere algo más de lo que ofrece MarkDown, la extensión <code>.mdx</code> es la mejor aliada</p>
+
+  <p>Al cambiar la extensión de los archivos de <code>.html</code> a <code>.mdx</code>, se puedes escribir HTML puro y duro dentro de ellos, en vez de sólo Markdown. <strong>MDX</strong> es una extensión que permite mezclar Markdown, componentes de Astro y HTML estándar en un mismo archivo.</p>
+
+  <p>Para que Astro entienda los archivos <code>.mdx</code> en un proyecto, se necesita añadir la integración oficial</p>
+
+  <pre><code languaje="bash">
+pnpm astro add mdx
+  </code></pre>
+
+  <p>Lo único que cambia en esta versión es dónde y cómo se configura (en el archivo <code>content.config.ts</code> <b>de la raíz</b>), pero la estructura interna de los artículos o productos por dentro sigue funcionando igual que antes.</p>
+
+  </main>
+</body>
+</html>
