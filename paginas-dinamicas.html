@@ -63,8 +63,8 @@ const { Content } = await render(post);
 ---
 
 &lt;DefaultLayout title={post.data.title}>
-  &lt;h1 class="text-3xl font-bold my-4">{post.data.title}</h1>
-  &lt;p>{post.data.description}</p>
+  &lt;h1 class="text-3xl font-bold my-4">{post.data.title}&lt;/h1>
+  &lt;p>{post.data.description}&lt;/p>
   
   &lt;figure>
     &lt;Image 
@@ -78,10 +78,10 @@ const { Content } = await render(post);
   &lt;hr>
   
   &lt;article class="prose">
-    <Content />
+    &lt;Content/>
   &lt;/article>
 
-  &lt;p><a href="/blog">Entradas del blog</a></p>
+  &lt;p>&lt;a href="/blog">Entradas del blog&lt;/a>&lt;/p>
 &lt;/DefaultLayout>  
 
 </code></pre>

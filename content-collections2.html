@@ -50,11 +50,11 @@
 
   <h3>Paso 2: Contenido del nuevo archivo <code>content.config.ts</code></h3>
 
-
+  <details>
+    <summary>Para usar sin decapcms</summary>
 <pre><code languaje="typescript">
-import { defineCollection} from 'astro:content';
+import { defineCollection, z } from 'astro:content'; // <-- Importamos 'z' directamente de 'astro:content'
 import { glob } from 'astro/loaders';
-import { z } from 'astro/zod'; // <-- CAMBIO 
 
 const posts = defineCollection({
   loader: glob({ 
@@ -66,18 +66,56 @@ const posts = defineCollection({
     pubDate: z.coerce.date(),
     description: z.string(),
     author: z.string(),
-//  Para indicar una imagen
+    
+    // Si la imagen es un archivo local del proyecto (para usar con <Image />):
     image: z.object({
-      url: image(), // <--- Astro valida que el archivo exista de verdad
+      url: image(), // <--- Valida que el archivo de imagen exista en local
       alt: z.string(),
-    }),
+    }).optional(),
+
     tags: z.array(z.string()),
-    cover: image().optional(),
+    cover: image().optional(), // <--- Forma estándar de validar una imagen opcional
   }),
 });
 
 export const collections = { posts };
 </code></pre>
+  </details>
+
+<details open>
+  <summary>Preparado para decapcms</summary>
+  <pre><code>
+    import { defineCollection, z } from 'astro:content'; // <-- Importación directa de 'z' oficial en Astro 7
+import { glob } from 'astro/loaders'; // <-- Loader estándar de Content Layer
+
+const posts = defineCollection({
+  loader: glob({ 
+    pattern: '**/*.{md,mdx}', 
+    base: './src/content/posts' 
+  }),
+  
+  // En Astro 7, si no usas el helper image(), 
+  // puedes pasar un objeto directo de Zod
+
+  schema: z.object({
+    title: z.string(),
+    pubDate: z.coerce.date(),
+    description: z.string(),
+    author: z.string(),
+    
+    // Configuración especial para Decap CMS (rutas string desde public/):
+    image: z.object({
+      url: z.string(), // Decap escribirá "/images/posts/foto.jpg"
+      alt: z.string(),
+    }).optional(),
+
+    tags: z.array(z.string()).optional(),
+  }),
+});
+
+export const collections = { posts };
+  </code></pre>
+</details>
 
 <p>Imaginemos ahora que tenemos dos colecciones: una colección de posts para un blog y otra de productos para una tienda. ¿Cómo quedaría el <code>content.config.ts</code> con el cambio?</p>
 

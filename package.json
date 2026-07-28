@@ -1,0 +1,21 @@
+{
+  "name": "astro-main",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm dlx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch",
+    "build": "pnpm dlx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --minify"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.17.0",
+      "onFail": "download"
+    }
+  },
+  "type": "module"
+}
