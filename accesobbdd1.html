@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+    <h1 class="det">Acceso a Bases de Datos (1)</h1>
+
+    <p>En el desarrollo de un MVP de una tienda virtual con <b>Astro y Supabase</b>, la velocidad de carga y el control total sobre los datos son críticos. Aunque Supabase ofrece un SDK cliente muy cómodo, configurar <b>la conexión directa con SQL puro</b>  permite exprimir al máximo el rendimiento de <b>PostgreSQL</b> además de ofrecer mayor flexibilidad a la hora de migrar.</p>
+
+    <p>El proceso de acceso a la base de datos implica la instalación de los paquetes necesarios, la configuración de las credenciales y la conexión al servidor PostgreSQL.</p>
+
+    <h3>Variables de Entorno de Conexión</h3>
+
+    <p>Supabase proporciona una cadena de conexión directa (Connection String) en la configuración de la base de datos. Para mantener la seguridad del MVP, estas credenciales se almacenan en el archivo <code>.env</code> de Astro y nunca se exponen al cliente.</p>
+
+    <ol>
+      <li>
+        <p><strong>Obtenemos la URI de conexión (Desde el panel de Supabase)</strong>: Para hacer el <em>deployment</em> en <b>Vercel</b> entramos a la configuración del proyecto en Supabase, sección Database, y copiamos la URI de conexión en el modo Session (puerto 6543).</p>
+      </li>
+      <li>
+        <p><strong>Configuramos la variable de conexión <code>DATABASE_URL</code> en Astro (archivo <code>.env</code>)</strong>: Para ello creamos el archivo  <code>.env</code> en la raíz del proyecto de Astro y definimos la variable de la siguiente manera: </p>
+        <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=.env"></script>
+        <p>Este archivo deberá incluirse en el <code>.gitignore</code> para no exponer por error las credenciales de conexión.</p>
+      </li>
+    </ol>
+
+    <h3>Configurar el controlador nativo <code>pg</code> (<code>node-postgres</code>)</h3>
+
+    <p>Para conectar Astro directamente a la base de datos PostgreSQL de Supabase sin pasar por la API REST del SDK, utilizamos el controlador nativo <code>pg (node-postgres)</code>. Esto nos permite abrir un pool de conexiones, reutilizando los enlaces existentes a la base de datos para procesar múltiples solicitudes de usuarios de forma ultra rápida, algo vital para el catálogo de una tienda virtual:</p>
+
+    <ol start="4">
+      <li>
+        <p><strong>Instalamos la biblioteca <code>node-postgres (pg)</code> y sus dependencias</strong> en el proyecto, añadiéndola automáticamente como una dependencia de producción en el archivo <code>package.json</code>. Para ello ejecutamos el siguiente comando en la terminal:</p>
+        <pre><code>pnpm add pg</code></pre>
+      </li>
+      <li>
+        <p><strong>Instalamos el equivalente de los tipos de datos de <code>pg</code> en <code>Typescript</code></strong>. Ejecutamos en la terminal:</p>
+        <pre><code>pnpm add -D @types/pg</code></pre>
+      </li>
+    </ol>
+
+    <h3>Configurar el adaptador de <code>Vercel</code></h3>
+
+    <p>Para desplegar y trabajar correctamente con <code>Astro</code>, <code>Vercel</code> (el servidor de aplicaciones) y la base de datos en <code>Supabase</code> (servidor de Bases de Datos) usando <b>renderizado en servidor (SSR)</b>, hay un par de configuraciones e instalaciones adicionales fundamentales.</p>
+
+    <ol start="6">
+      <li>
+        <p><strong>Instalamos el driver de <code>Vercel</code></strong>. Para ello ejecutamos el siguiente comando en la terminal:</p>
+        <pre><code>pnpm dlx astro add vercel</code></pre>
+      </li>
+      <li>
+        <p><strong>Configuramos el Renderizado en Servidor en <code>astro.config.mjs</code></strong>. Deberemos verificar que el archivo <code>astro.config.mjs</code> contenga la propiedad <code>output: 'server'</code>. De lo contrario debemos incluirla manualmente.</p>
+      </li>
+    </ol>
+    <h3>Configuración adicional para los estilos</h3>
+    <ol start="8">
+      <li>
+        <p>Instalamos <code>tailwind</code> para los estilos del <code>FrontEnd</code>, ejecutando el siguiente comando en la terminal:</p>
+        <pre><code>pnpm astro add tailwind</code></pre>
+      </li>
+    </ol>
+    
+    <p class="text-base text-center my-8">Los archivos <code>astro.config.mjs</code> y <code>package.json</code><br>deberán lucir similares a los siguientes:</p>
+    <hr>
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">astro.config.mjs</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=astro.config.mjs">
+      </script>
+    </details>
+    <details class="pl-4">
+      <summary class="bg-white text-black">package.json</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=package.json">
+      </script>
+    </details>
+    <hr>
+
+    <h3  class="mt-8 text-center">ARCHIVOS DE CONEXIÓN CON LA BASE DE DATOS</h3>
+
+    <p>Antes de comenzar a trabajar con la base de datos, es importante crear los archivos necesarios para gestionar la conexión:</p>
+
+    <ol start="9">
+      <li>
+        <p><strong>Creamos el archivo de tipos para las variables de entorno <code>env.d.ts</code></strong>. Este archivo permite indicar el tipo de variable que se declaran en Astro. Las interfaces que contiene se aplican a todo el proyecto. El archivo <code>env.d.ts</code>, se debe ubicar en la raíz del proyecto.</p> 
+        <details class="pl-4 mb-4">
+          <summary class="bg-white text-black">env.d.ts </summary>
+          <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=env.d.ts"></script>
+        </details>
+      </li>
+      <li>
+        <p>Creamos una carpeta llamada <code>lib</code> dentro de la carpeta <code>src</code>, para almacenar todos los archivos de conexión y lectura a las tablas de la Base de Datos (archivos <code>.ts</code>).</p>
+      </li>
+      <li>
+        <p><strong>Creamos el archivo de conexión a la base de datos <code>src/lib/db.ts</code></strong>. Este archivo permitirá iniciar la conexión con la Base de Datos utilizando la variable de entorno que se encuentra oculta en el archivo <code>.env</code>. (<em>El archivo <code>.env</code> no se exporta. Posteriormente, al hacer el deployment, se deberá configurar en el proyecto de <code>Vercel</code></em>).</p>
+        <details class="pl-4 mb-4">
+          <summary class="bg-white text-black">src/lib/db.ts</summary>
+          <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=db.ts"></script>
+        </details>      
+      </li>
+    </ol>
+
+    <br><hr>
+    <h3  class="mt-8 text-center">CONSULTAS SQL A LAS TABLAS DE LA BASE DE DATOS</h3>
+
+    <p>Para realizar consultas SQL a las tablas de la base de datos, crearemos un archivo <code>.ts</code>, por cada tabla que queramos gestionar. Organizaremos las funciones para manipular cada tabla dentro de estos archivos los cuales se guardan en la carpeta <code>src/lib/</code>. Ejemplo:</p>
+
+    <pre><code>
+      src/
+      └── lib/
+        ├── db.ts          # Conexión principal
+        ├── categorias.ts  # getCategorias()
+        ├── productos.ts   # getProductosByCategoria(), getProductoById()
+        ├── clientes.ts    # getDatosCliente()
+        └── facturas.ts    # crearFactura(), getFactura()
+    </code></pre>
+
+    <p><strong>Ejemplo del archivo <code>src/lib/categorias.ts</code></strong></p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">src/lib/categorias.ts</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=categorias.ts"></script>
+    </details> 
+
+    <br><hr>
+    <h3  class="mt-8 text-center">RENDERIZADO DE DATOS</h3>
+
+    <p>El renderizado de datos se hará en un componente o en una página de Astro, según sea necesario. En el caso de las categorías, que se utilizan para mostrar un menú, crearemos un componente específico ( <code>src/components/MenuCategorias.astro</code> ) para su visualización. </p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">src/components/MenuCategorias.astro</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=MenuCategorias.astro"></script>
+    </details>
+    
+
+    <p>En el caso del ejemplo del Proyecto Final, éste componente se encuentra embebido en el archivo <code>src/layouts/LayoutBase.astro</code></p>
+
+    <figure>
+      <img src="./img/tienda.png" alt="index.astro" class="mx-auto mt-4 border border-gray-300 rounded-lg shadow-lg">
+      <figcaption class="text-center text-sm text-gray-500">Ejemplo de visualización de las categorías en el menú lateral</figcaption>
+    </figure>
+
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">src/layouts/LayoutBase.astro</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=LayoutBase.astro"></script>
+    </details>
+
+    <p>Y en el <code>&lt;slot /&gt;</code> de este layout se muestra el contenido principal de cada página. Ejemplo:</p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">src/pages/index.astro</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=index.astro"></script>
+    </details>
+
+    <p>Volviendo a la visualización de los datos, en el caso de los <b>productos</b>, en este caso se mostraría un <b>grid de productos</b>, directamente en la página <code>src/pages/productos.astro</code> con los productos que se corresponden con la categoría seleccionada. (Quizá podría ser útil crear un componente específico para mostrar la tarjeta de cada producto.)</p>
+
+    <p>En la siguiente sección veremos cómo leer un parámetro <code>get</code> de la url de la página. (Ejemplo:<code>http://localhost:4321/productos?<b><mark>categoria=1</mark></b></code>)</p>
+
+  </main>
+</body>
+
+</html>
