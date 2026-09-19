@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+  <style>
+    h2 {color: #880D1E;}
+    blockquote {padding: 20px 50px; color: black; background-color: #F5F5DC;}
+  </style>
+
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+
+    <h1 class="det">Acceso con filtros a Bases de Datos (2)</h1>
+
+    <h2>Parámetros GET en Astro</h2>
+
+    <p>Para leer parámetros de búsqueda en la URL (<em>query parameters</em> o parámetros GET como <code>?categoria=1</code> o <code>?search=laptop</code>) desde <b>Astro</b>,  debes acceder al objeto <code>Astro.url.searchParams</code>.</p>
+
+    <p>Ejemplo de cómo se ve una URL con parámetros GET en el servidor:</p>
+
+    <figure>
+      <img width="80%" src="./img/parametros-get.png" alt="Parametros GET en URL">
+    </figure>
+
+    <p>Para utilizar este enfoque, <b>la página debe estar configurada para renderizado en el servidor (SSR)</b> , ya que en la generación estática (SSG) no existen solicitudes de servidor dinámicas al momento de la petición.</p>
+
+    <h3>Configuración previa (SSR)</h3>
+
+    <p>Recordemos cómo se habilita el modo de salida en servidor dentro del archivo <code>astro.config.mjs</code>:</p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">astro.config.mjs</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=astro.config.mjs">
+      </script>
+    </details>
+
+    <h3>Leer parámetros GET y consultar la Base de Datos</h3>
+
+    <p>El parámetro GET se extrae en el Frontmatter (entre los tres guiones `---` de tu archivo <code>.astro</code>) y se pasa a la función SQL. </p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">productos.astro</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=productos.astro">
+      </script>
+    </details>
+
+    <h4>Analicemos productos.astro:</h4>
+
+    <p>Estas dos líneas extraen el parámetro  <code>categoria</code> de la URL en <b>Astro</b>:</p>
+
+    <ol>
+      <li><p>
+        <code>const { searchParams } = Astro.url;</code>: Desestructura el objeto <code>searchParams</code> desde la URL de Astro. Este objeto contiene los parámetros de la URL actual (todo lo que va después de <b>?</b>).<br>
+        No existe un límite oficial fijado en cuanto a la cantidad absoluta de parámetros GET. <b>El factor limitante es la longitud total de la cadena de URL</b> (incluyendo dominio, ruta y toda la query string <code>?param1=valor&m2=valor...</code>). La recomendación práctica es de 2.048 caracteres para compatibilidad universal (SEO + cualquier stack).
+       </p></li>
+       <li><p>
+        <code>const categoriaQuery = searchParams.get(<mark>'categoria'</mark>);</code>: Obtiene el valor del parámetro <code>categoria</code>. Por ejemplo, si la URL es <code>/productos?categoria=4</code>, <code>categoriaQuery</code> será <b>"4"</b> (string). Si el parámetro <code>categoria</code> no existe en la URL, se retorna null.</code>.
+      </p></li>
+      <li><p>
+        La función <code>getProductosPorCategoria(<mark>categoria</mark>)</code> que estaría guardada en <code>lib/productos.ts</code> contendrá la función con el sql necesario para obtener los productos de la categoría que se ha leído desde el parametro GET. 
+      </p></li>
+      <li><p>
+        La variable <code>productos</code>, devuelta por la función <code>getProductosPorCategoria(<mark>categoria</mark>)</code> es un array de objetos que traerá las filas de la tabla productos que se corresponda con la categoría enviada como argumento a la misma. Cada objeto representa una fila de la tabla productos con las columnas como propiedades (<code>{ id, nombre, precio, ... }</code>).<br>
+        Si la categoría no tiene productos, se retornará <b>[] (array vacío)</b>, <mark>no null</mark>. Asegúrate de que tu código maneje ese caso.
+      </p></li>
+    </ol>
+
+    <br>
+    <h3>La función de consulta <b>getProductosPorCategoria(categoria)</b> en <b>lib/productos.ts</b></h3>
+
+    <p>Es indispensable utilizar consultas preparadas sql (<b>Prepared Statements</b>) para prevenir ataques de Inyección SQL cuando se reciben datos directamente de la URL. A continuación el fragmento que se corresponde con la función <code>getProductosPorCategoria(categoria)</code></p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black">productos.ts</summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=productos.ts">
+      </script>
+    </details>
+
+    <br><hr>
+
+    <blockquote>
+       <p><b>Importante:</b> Nunca se debe concatenar el input del usuario en una consulta SQL, porque permitiría que un atacante incluya código SQL arbitrario (inyección SQL) como parámetro GET (o a través de cualquier entrada del usuario: POST, headers, cookies, uploads...) y acceda o destruya datos e incluso exponga el esquema de la base de datos (nombres de tablas y columnas).<br> 
+       Por ejemplo: ❌<code>"WHERE fk_categoria = '" + categoria + "'"</code>.</p>
+       <p>En el Desarrollo WEB se usan siempre los <b>Prepared Statements</b>, los cuales usan marcadores de posición (`$1`, `?`, `:categoria`, etc.) que varían según la librería o cliente SQL que se utilice.</p>
+    </blockquote>
+
+    <br>
+    <h3>Cómo probar la URL</b></h3>
+
+    <p><b>Usando una función <code>getProductos()</code> (sin filtrar)</b></p>
+
+    <pre><code>http://localhost:4321/productos</code></pre>
+
+
+    <p><b>Usando la función <code>getProductosPorCategoria(categoria)</code> (filtrando con el parámetro GET)</b></p>
+
+    <pre><code>http://localhost:4321/productos?categoria=3</code></pre>
+
+
+  </main>
+</body>
+
+</html>
