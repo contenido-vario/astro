@@ -154,62 +154,11 @@ PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
 
 <p>Ejemplo de pantalla de autenticación con Google: si el usuario está autenticado muestra su correo y un botón de cierre de sesión; si no lo está, muestra el botón para iniciar sesión con Google.</p>
 
-<pre><code>
-  ---
-  import { supabase } from '../lib/supabase';
-
-  // Comprobar la sesión mediante las cookies
-  const accessToken = Astro.cookies.get('sb-access-token');
-  const refreshToken = Astro.cookies.get('sb-refresh-token');
-
-  let user = null;
-
-  if (accessToken && refreshToken) {
-    const { data } = await supabase.auth.setSession({
-      access_token: accessToken.value,
-      refresh_token: refreshToken.value,
-    });
-    user = data.user;
-  }
-  ---
-
-  &lt;html lang="es">
-    &lt;head>
-      &lt;meta charset="utf-8" />
-      &lt;title>Autenticación con Google y Astro&lt;/title>
-    &lt;/head>
-    &lt;body>
-      &lt;main style="padding: 2rem; font-family: sans-serif;">
-        &lt;h1>Mi App con Astro y Supabase&lt;/h1>
-
-        {user ? (
-          &lt;div>
-            &lt;p>Bienvenido, &lt;strong>{user.email}&lt;/strong>&lt;/p>
-            &lt;form action="/api/auth/signout" method="POST">
-              &lt;button type="submit">Cerrar Sesión&lt;/button>
-            &lt;/form>
-          &lt;/div>
-        ) : (
-          &lt;button id="login-btn">Iniciar Sesión con Google&lt;/button>
-        )}
-      &lt;/main>
-
-      &lt;script>
-        import { supabase } from '../lib/supabase';
-
-        const loginBtn = document.getElementById('login-btn');
-        loginBtn?.addEventListener('click', async () => {
-          await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: `${window.location.origin}`,
-            },
-          });
-        });
-      &lt;/script>
-    &lt;/body>
-  &lt;/html>  
-</code></pre>
+    <details open class="pl-4 mb-4">
+      <summary class="bg-white text-black">login.astro</summary>
+      <script src="<script src="https://gist.github.com/contenido-vario/74d11efc9a4552249234d307384855e2.js?file=login.astro">
+      </></script>
+    </details>
 
 <h3>Cierre de Sesión (<code>src/pages/api/auth/signout.ts</code>)</h3>
 
