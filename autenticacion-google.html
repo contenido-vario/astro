@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+    <h1 class="det">Autenticación Google</h1>
+
+    <p>Para implementar la autenticación con <b>Google en Supabase utilizando Astro</b>, el proceso se divide en tres
+      partes: configurar Google Cloud Console, activar el proveedor en Supabase y escribir el código en Astro.</p>
+
+    <h3>1. Configurar Google Cloud Console</h3>
+
+    <ol>
+      <li>
+        <p>Entra a <a target="_blank" rel="noopener" href="https://console.cloud.google.com/">Google Cloud Console</a> y crea o selecciona un proyecto. Para ello clica el selector de proyectos a la derecha del título de <b>Google Cloud</b></p>
+      </li>
+      <li>Haz clic en el recuadro <b>APIs y servicios</b> dentro de Acceso rápido (o desde el menú lateral).</li>
+      <li>
+        <p>En la barra de búsqueda o menú lateral, entra en <b>OAuth consent screen</b> (<span style="color: red">Pantalla de consentimiento de OAuth</span>). Clica sobre el botón <code><button style="color: white; background-color: cornflowerblue;">Comenzar</button></code></p>       
+      </li>
+      <li>
+        <p>Llena la información del proyecto y tu correo como desarrollador y haz clic sobre <code>Siguiente</code>:</p>
+        <figure><img src="" alt=""></figure>
+      </li>
+        <p>Selecciona la opción <b>Usuarios Externos</b> para que cualquier usuario con cuenta de Google pueda iniciar sesión. (<code>Siguiente</code>)</p>
+      <li>
+        <p>Verifica tu dirección de correo electrónico para notificaciones al desarrollador (<code>Siguiente</code>).</p>
+      </li>
+      <li>
+        <p>Acepta la <b>Política de Datos del Usuario de los Servicios de las APIs de Google</b>. Clic en <code>Continuar</code> y luego en <code><button style="color: white; background-color: cornflowerblue;">Crear</button></code>.</p>
+      </li>
+    </ol>
+
+    <p>Una vez guardado el asistente, Selecciona la opción Clientes del menú lateral. Desde allí podrás hacer clic en <code>+ Crear cliente</code>.</p>
+
+    <ol>
+      <li>Selecciona <b>Aplicación web</b></li>
+      <li>Pon un nombre que sirva como referencia interna para identificarlo dentro de la consola de Google Cloud.</li>
+    </ol>
+    <figure><img src="" alt=""></figure>
+
+    <p>Desplázate hacia abajo en esa misma página y haz clic sobre <code>Crear</code>. Google te generará unas claves que pegaremos en <b>Supabase</b></p>
+    
+    <h3>2. Supabase</h3>
+    
+    <p>Abre Supabase en otra pestaña del navegador. Entra a tu proyecto en Supabase y haz clic, en el menú lateral sobre la opción <b>Authentication</b>. Ahora:</p>
+    
+    <ol>
+      <li>
+        <p>Selecciona del menú lateral la opción <b>Sign In / Providers</b> y de la lista <b>Auth Providers</b> selecciona <b>Google</b></p>
+        <ul>
+          <li>En la primera fila, <b>Enable Sign in with Google</b>, debes cambiar el interruptor a la posición activada.</li>
+          <li>En el campo <b>Client IDs</b> (donde dice <b>tienda</b>), debes pegar el ID de cliente completo que te generó Google Cloud (suele ser una cadena muy larga que termina en <code>.apps.googleusercontent.com, como 123456789-abcdefg.apps.googleusercontent.com</code>).</li>
+          <li>En <b>Client Secret</b>, pega el secreto de cliente.</li>
+          <li>Copia la Callback URL de Supabase haciendo clic sobre el botón Copy que aparece al lado de <code>https://<em>xxxx</em>.supabase.co/a</code></li>
+          <li>Haz clic en <code>Save</code></li>
+        </ul>
+      </li>
+    </ol>
+
+    <h3>3. Regresamos a la pantalla de Google</h3>
+
+    <p>Regresa a la ventana de Google Cloud (donde estás creando el Cliente de OAuth) y baja hasta las URIs autorizadas:</p>
+
+    <ol>
+      <li><b>En Orígenes autorizados de JavaScript</b>, haz clic en + AGREGAR URI y pega esa misma URL pero sin la parte final del callback (solo el dominio): <code>https://<em>xxx</em>.supabase.co</code></li>
+      <li><b>En URIs de redireccionamiento autorizados</b>, pega la URL completa que acabas de copiar: <code>https://<em>xxx</em>.supabase.co/auth/v1/callback</code> </li>
+    </ol>
+
+    <hr><br>
+    <h1 class="det">Pantalla de autenticación en Astro</h1>
+
+    <p>Antes de continuar deberemos instalar el cliente de Supabase en tu proyecto de Astro, si aún no lo has hecho:</p>
+
+<pre><code>   pnpm add @supabase/supabase-js</code></pre>
+
+    <p>Ahora edita el archivo <code>.env</code> para agregar las claves:</p>
+
+    <ul>
+      <li>La clave que necesitas para <b>PUBLIC_SUPABASE_ANON_KEY</b> es la que aparece bajo <b>Publishable key</b>. Copia el valor que empieza por <code>sb_publishable_...</code> haciendo clic en el icono de copiar al lado de default.<br> <mark>La encontraras en <code>Project Settings > API Keys</code></mark></li>
+      <li>La clave que necesitas para <b>PUBLIC_SUPABASE_URL</b> es la que aparece bajo <b>API URL</b>.<br>
+      <mark>La encontraras en <code>Project Settings > Integracion</code></mark></li>
+    </ul>
+
+<pre><code>
+# Conexión existente a la base de datos
+DATABASE_URL="postgresql://..."
+
+# Configuración del cliente de Supabase para Astro
+PUBLIC_SUPABASE_URL=https://<tu-id-de-proyecto>.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=tu-anon-key-aqui
+<!-- sb_publishable_lwakOvuSo6hlZvituaSz4g_NPuGJZyP -->
+</code></pre>
+
+  <h3>Importante</h3>
+  
+  <p><b>Prefijo PUBLIC_</b>: En Astro, las variables que empiezan por PUBLIC_ son accesibles tanto en el servidor como en el navegador (en el código cliente dentro de la etiqueta <code>&lt;script&gt;</code>), lo cual es necesario para ejecutar <code>supabase.auth.signInWithOAuth()</code>.</p>
+
+  <p><b>En Vercel</b>: Para desplegar proyecto <mark>en Vercel</mark>, se deben agregar estas mismas variables en la consola de Vercel (en <code>Project Settings > Environment Variables</code>).</p>
+
+  <h3>Crea el archivo <code>src/lib/supabase.ts</code> (cliente de autenticación de Supabase)</h3>
+
+<pre><code>
+  import { createClient } from '@supabase/supabase-js';
+
+  export const supabase = createClient(
+    import.meta.env.PUBLIC_SUPABASE_URL,
+    import.meta.env.PUBLIC_SUPABASE_ANON_KEY
+  );
+</code></pre>  
+
+<h3>Crea el Endpoint de Callback (archivo <code>src/pages/api/auth/callback.ts</code>)</h3>
+<p>Este archivo permite procesar el código de intercambio cuando Google redirija de vuelta al usuario:</p>
+
+<pre><code>
+  import type { APIRoute } from 'astro';
+  import { supabase } from '../../../lib/supabase';
+
+  export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+    const authCode = url.searchParams.get('code');
+
+    if (!authCode) {
+      return new Response('No auth code provided', { status: 400 });
+    }
+
+    const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+    if (error) {
+      return new Response(error.message, { status: 500 });
+    }
+
+    const { access_token, refresh_token } = data.session;
+
+    // Guardar tokens en cookies HTTP-only para mayor seguridad
+    cookies.set('sb-access-token', access_token, { path: '/', httpOnly: true, secure: true });
+    cookies.set('sb-refresh-token', refresh_token, { path: '/', httpOnly: true, secure: true });
+
+    return redirect('/');
+  };
+</code></pre>
+
+<h3>Página de Login / Logout</h3>
+
+<p>Ejemplo de pantalla de autenticación con Google: si el usuario está autenticado muestra su correo y un botón de cierre de sesión; si no lo está, muestra el botón para iniciar sesión con Google.</p>
+
+<pre><code>
+  ---
+  import { supabase } from '../lib/supabase';
+
+  // Comprobar la sesión mediante las cookies
+  const accessToken = Astro.cookies.get('sb-access-token');
+  const refreshToken = Astro.cookies.get('sb-refresh-token');
+
+  let user = null;
+
+  if (accessToken && refreshToken) {
+    const { data } = await supabase.auth.setSession({
+      access_token: accessToken.value,
+      refresh_token: refreshToken.value,
+    });
+    user = data.user;
+  }
+  ---
+
+  &lt;html lang="es">
+    &lt;head>
+      &lt;meta charset="utf-8" />
+      &lt;title>Autenticación con Google y Astro&lt;/title>
+    &lt;/head>
+    &lt;body>
+      &lt;main style="padding: 2rem; font-family: sans-serif;">
+        &lt;h1>Mi App con Astro y Supabase&lt;/h1>
+
+        {user ? (
+          &lt;div>
+            &lt;p>Bienvenido, &lt;strong>{user.email}&lt;/strong>&lt;/p>
+            &lt;form action="/api/auth/signout" method="POST">
+              &lt;button type="submit">Cerrar Sesión&lt;/button>
+            &lt;/form>
+          &lt;/div>
+        ) : (
+          &lt;button id="login-btn">Iniciar Sesión con Google&lt;/button>
+        )}
+      &lt;/main>
+
+      &lt;script>
+        import { supabase } from '../lib/supabase';
+
+        const loginBtn = document.getElementById('login-btn');
+        loginBtn?.addEventListener('click', async () => {
+          await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/api/auth/callback`,
+            },
+          });
+        });
+      &lt;/script>
+    &lt;/body>
+  &lt;/html>  
+</code></pre>
+
+<h3>Cierre de Sesión (<code>src/pages/api/auth/signout.ts</code>)</h3>
+
+<pre><code>
+  import type { APIRoute } from 'astro';
+
+  export const POST: APIRoute = async ({ cookies, redirect }) => {
+    cookies.delete('sb-access-token', { path: '/' });
+    cookies.delete('sb-refresh-token', { path: '/' });
+
+    return redirect('/');
+  };
+</code></pre>
+
+  </main>
+</body>
+
+</html>
