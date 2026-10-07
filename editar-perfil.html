@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+    <h1 class="det">Mostrar perfil activo y editar perfil</h1>
+
+    <p>En este documento se explicará cómo leer las cookies del servidor para mostrar el usuario autenticado en la Barra de Navegación, y cómo guardar los clientes en la tabla de clientes de <a href="https://supabase.com/" target="_blank" rel="noopener">Supabase</a> y en <a href="https://app.brevo.com/" target="_blank" rel="noopener">Brevo</a></p>
+
+    <h3>Mostrar el usuario autenticado en la Barra de Navegación</h3>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black"><mark>Nav.astro</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/74d11efc9a4552249234d307384855e2.js?file=Nav.astro"></script>
+    </details>
+
+    <p>En el <b>frontmatter</b>, se leen los datos del usuario autenticado desde las cookies y se guarda el nombre del usuario desde los metadatos de la cuenta de Google.</p>
+    <p><code>&lt;span id="usuario"&gt;{textoUsuario}&lt;/span&gt;</code> hace que Astro renderice el valor adecuado en el HTML directamente desde el servidor.</p>
+
+    <h3>Editar datos del Perfil y guardarlos en Supabase (y en Brevo)</h3>
+
+    <h4 style="color: darkred"><b>Paso 1: Página de Perfil</b></h4>
+
+    <p>En <b>Nav</b> el perfil se accede desde el botón <code>Perfil</code> (ver linea 89 de <code>Nav.astro</code>)</p>
+
+    <p>Deberéis adaptar el código, es una muestra. Con este formulario, enviamos los datos mediante POST a la API Endpoint de Astro <code>crear.ts</code>:</p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black"><mark>perfil.astro</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/effeb56725cdb949403ac03b8a71c608.js?file=perfil.astro"></script>
+    </details>
+
+    <h4 style="color: darkred">Paso 2: Endpoint (archivo <code>crear.ts</code>)</h4>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black"><mark>crear.ts</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/effeb56725cdb949403ac03b8a71c608.js?file=crear.ts"></script>
+    </details>    
+
+    <p>Este archivo recibe los datos del formulario y los inserta en la tabla de clientes, si el usuario está autenticado. Sólo hay que asegurarse de tener configurado el pool de conexiones con <code>pg</code>.:</p>
+
+    <p><b>Datos importantes</b></p>
+
+    <ol>
+      <li>
+        <b>SQL 100% Estándar y Migrable</b>: La consulta <code>INSERT INTO ... ON CONFLICT</code> funciona en cualquier motor PostgreSQL (sea en Supabase, AWS o en propio servidor).
+      </li>
+      <li>
+        <b>Seguridad (Evita Inyección SQL)</b>: Se usan parámetros posicionados ($1, $2, $3, $4).
+      </li>
+      <li>
+        <b>Sincronización</b>: Si el cliente ya existía en la tabla, el ON CONFLICT actualiza sus datos en lugar de lanzar un error.
+      </li>
+    </ol>
+
+    <p>En PostgreSQL, la palabra clave <b>EXCLUDED</b> se usa dentro de una cláusula <b>ON CONFLICT ... DO UPDATE</b> para hacer referencia a los nuevos valores que se intentan insertar con la instrucción <b>INSERT</b> cuando hay conflicto (el registro ya existe). Es como decir Es decirle a la base de datos:</p>
+
+    <blockquote><em>"Intenta insertar este cliente. Pero si su ID ya existe, edita la fila existente y sustituye su nombre y teléfono viejos por los nuevos valores que acabo de mandar en esta petición (<b>EXCLUDED</b>)."</em></blockquote>
+
+    <br><hr>
+    <h3>Alias de rutas en el archivo <code>tsconfig.json</code></h3>
+
+    <p>Esto permite importar funciones desde cualquier archivo .ts del proyecto (esté donde esté, sin usar direcciones relativas) usando la @:</p>
+
+    <details class="pl-4 mb-4">
+      <summary class="bg-white text-black"><mark>tsconfig.json</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/effeb56725cdb949403ac03b8a71c608.js?file=tsconfig.json"></script>
+    </details> 
+
+  </main>
+</body>
+</html>
