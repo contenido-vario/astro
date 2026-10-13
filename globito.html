@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+    <h1 class="det">Carrito compras (Globito)</h1>
+
+    <h2 style="color:red; text-align: center;">Adaptar a vuestra tienda</h2>
+
+    <h3>¿Cómo hacer el carrito de compras con JavaScript nativo usando eventos?</h3>
+
+    <p>El reto al usar JavaScript es que el botón de <b>Añadir a la cesta</b> está en la página del producto y el <b>Globito del carrito</b> está arriba en el <code>Header</code> o <code>Navbar</code> (que son componentes distintos).</p>
+
+    <p>Para que se comuniquen entre sí de forma limpia y reactiva en el cliente, la mejor práctica es lanzar un <b>Evento Personalizado</b> (<code>CustomEvent</code>).</p>
+
+    <h3>En el Header / Navbar (o donde esté el icono del carrito)</h3>
+
+    <p>Se escucha un evento personalizado cuando la página carga y se actualiza la cantidad de productos en la cesta (<code>id="cart-count"</code>):</p>
+
+    <details>
+      <summary><mark>Header.astro</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/456ade52a05d3ab6c5e8fcb641a474e8.js?file=Header.astro"></script>
+    </details>    
+
+    <h3>En la página o componente de Producto (al hacer clic en <b>Agregar a la cesta</b> )</h3>
+
+    <p>Cuando el usuario hace clic y el producto se guarda en <code>localStorage</code>, solo se agrega una línea para notificar al navegador que la cesta cambió:<p>
+
+     <details>
+      <summary><mark>Producto.astro</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/456ade52a05d3ab6c5e8fcb641a474e8.js?file=Producto.astro"></script>
+    </details> 
+    
+    <p>Es importante destacar que en el código la página o componente de Producto, se hace uso de la directiva <code>define:vars</code></p><br>
+
+    <h2 style="color: darkblue; font-size: 1.5em;">¿Para qué se usa <code>define:vars</code>?</h2>
+
+    <p><code>define:vars</code> es una directiva propia de Astro para inyectar variables de servidor a cliente. Sirve para enviar los datos desde el servidor (backend) hacia el navegador (cliente).</p>
+
+<pre><code>
+  [ SERVIDOR / BACKEND ]               [ NAVEGADOR / CLIENTE ]
+    Procesa el código dentro de ---      Ejecuta el código dentro de &lt;script&gt;
+    Lee la Base de Datos                 Maneja clicks, alert(), localStorage, etc.
+    Tiene la variable `producto`         NO sabe qué es `producto`
+</code></pre>
+
+    <p>Si no se envían las variables del servidor con <code>define:vars</code>, el navegador dará error porque la variable <code>producto</code> solo existía en el servidor mientras se construía la página en HTML. Cuando la página llega al usuario, el servidor ya terminó su trabajo y destruyó esas variables.</p>
+
+    <h4>Sintaxis:</h4>
+    <ol>
+      <li><code>define:vars</code>: Es la directiva propia de Astro para inyectar variables de servidor a cliente.</li>
+      <li><code>{ { ... } }</code> (doble llave)
+        <ol class="a">
+          <li>La llave exterior <code>{ ... }</code> entra al modo JavaScript de Astro. </li>
+          <li> La llave interior <code>{ producto: producto[0] }</code> crea un objeto donde la clave izquierda es el nombre que tendrá la variable en el <code>&lt;script&gt;</code> del navegador, y el valor derecho es la variable original de Astro/servidor.</li>
+        </ol>
+      </li>
+    </ol>
+
+    <p>Se pueden pasar todas las variables que se necesiten dentro del objeto de <code>define:vars</code>.</p>
+
+    <details>
+      <summary><mark>Ejemplo:</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/456ade52a05d3ab6c5e8fcb641a474e8.js?file=Ejemplo.astro"></script>
+    </details>
+    
+  </main>
+</body>
+
+</html>
+
