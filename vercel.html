@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+  <style>
+    table, th, td {
+      border: solid 1px black;
+      padding: 0px 5px;
+    }
+  </style>
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+
+    <h1 class="det">Desplegar en Vercel</h1>
+
+    <h3>1. Ejecutar el comando</h3>
+
+<pre><code>
+pnpm astro add vercel
+</code></pre>
+
+    <p>Esto actualizará automáticamente tu archivo <code>astro.config.mjs</code> configurando el adaptador:</p>
+
+    <details class="pl-4 mb-4">
+      <summary><mark>astro.config.mjs</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/e10a1faed7b0da2f4460ba1660dedaf1.js?file=astro.config.mjs">
+      </script>
+    </details><br>
+
+    <h3>2. Subir el código a <b>GitHub</b>, GitLab o Bitbucket (otros repositorios)</h3>
+    <p>Asegúrate de <b><mark>NO SUBIR</mark></b> las credenciales de Supabase o las claves de Stripe o Brevo  (archivo <code>.env</code>). Debes subir <b>todo el código fuente de tu proyecto</b>, excluyendo los archivos generados automáticamente y los datos sensibles.</p>
+
+    <p>A continuación tienes el desglose exacto de lo que <b>SÍ</b> debes subir y lo que <b>NO</b> debes subir.</p>
+
+    <details class="pl-4 mb-4">
+      <summary>Lo que sí debes subir:</summary>
+      <ol>
+        <li><code>src/</code> (Toda la carpeta): Contiene tus componentes, páginas, estilos, scripts y la lógica de integración.</li>
+        <li><code>public/</code> (Toda la carpeta): Archivos estáticos públicos como el favicon, imágenes estáticas, robots.txt, etc.</li>
+        <li><code>astro.config.mjs</code> (o <code>.ts</code>): El archivo de configuración de Astro (donde está configurado el adaptador de Vercel).</li>
+        <li><code>package.json</code> y <code>package-lock.json</code> (o <code>pnpm-lock.yaml</code> / <code>yarn.lock</code>): Definen las dependencias de tu proyecto (incluyendo <code>@astrojs/vercel</code> y <code>@supabase/supabase-js</code>) para que Vercel sepa qué instalar.</li>
+        <li><code>tsconfig.json</code>: Configuración de TypeScript de Astro.</li>
+        <li><code>.gitignore</code>: El archivo que le indica a Git qué cosas debe ignorar (muy importante).</li>
+        <li><code>README.md</code> (<em>opcional</em>): Documentación básica del proyecto.</li>
+      </ol>
+    </details>
+    <details class="pl-4 mb-4">
+      <summary>Lo que <mark>no</mark> debes subir:</summary>
+      <p>Estos archivos y carpetas <b><mark>nunca</mark></b> deben llegar al repositorio:</p>
+      <ol>
+        <li><code>node_modules/</code>: Se genera al instalar dependencias. Vercel ejecutará <code>pnpm install</code> automáticamente al desplegar.</li>
+        <li><code>.astro/</code>: Archivos temporales de caché de Astro.</li>
+        <li><code>dist/</code>: Carpeta donde se genera la compilación final. Vercel la creará durante el despliegue.</li>
+        <li><code>.env</code> / <code>.env.local</code>: Contiene tus claves secretas de Supabase. <b>Nunca lo subas</b>.</li>
+      </ol>
+    </details>
+
+    <br>
+    <h3>3. Importar el proyecto en Vercel y configurar las variables de entorno</h3>
+
+    <ol>
+      <li>Inicia sesión en <a href="https://vercel.com/" target="_blank" rel="noopener">Vercel</a> y haz clic en <code>Add New &gt; Project</code>.</li>
+      <li>Selecciona tu repositorio de Git.</li>
+      <li>Vercel detectará automáticamente que el framework es <b>Astro</b>.</li>
+      <li>En la sección <code>Environment Variables</code> añade las claves</li>
+      <li>Haz clic en <code>Deploy</code>.</li>
+    </ol>
+
+    <p>Aquí tienes la lista completa de variables en <code>Settings → Environment Variables</code>:</p>
+
+    <table width="90%">
+      <tr><th>VARIABLE</th><th>VALOR</th></tr>
+      <tr><td>PUBLIC_SUPABASE_URL</td><td>Tu URL de Supabase</td></tr>
+      <tr><td>PUBLIC_SUPABASE_ANON_KEY</td><td>Tu anon key</td></tr>
+      <tr><td>SUPABASE_SERVICE_ROLE_KEY</td><td>Tu service role key</td></tr>
+      <tr><td>STRIPE_SECRET_KEY</td><td>sk_live_... o sk_test_...</td></tr>
+      <tr><td>STRIPE_WEBHOOK_SECRET</td><td>whsec_...</td></tr>
+      <tr><td>BREVO_API_KEY</td><td>Tu API key de Brevo</td></tr>
+    </table>
+
+    <br>
+
+    <p>Todas deberían estar en tu <code>.env</code> local. Es el mismo conjunto de variables que luego replicas en Vercel para producción</p>
+
+    <p>Marca las variables como <b>Secret</b> (write-only) en Vercel para que nadie en tu equipo pueda leer el valor una vez guardado.</p>
+
+  </main>
+</body>
+
+</html>
