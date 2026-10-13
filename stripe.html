@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es-ES">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="./img/rt.ico" type="image/x-ico">
+  <title>Astro</title>
+
+  <!-- Cargar el archivo CSS de distribución -->
+  <link rel="stylesheet" href="./dist/output.css">
+
+  <script src="./js/highlight-setup.js" defer></script>
+</head>
+
+<body class="bg-stone-100 leading-normal tracking-normal">
+  <main class="container mx-auto mt-3 px-6 pt-1 pb-6">
+    <h1 class="det">Proceso de Compra</h1>
+
+    <h3>El carrito de compra: carrito.astro</h3>
+
+    <p>El carrito de compra está estructurado en tres partes bien diferenciadas:</p>
+    <details>
+      <summary><mark>carrito.astro</mark></summary>
+      <script src="https://gist.github.com/contenido-vario/456ade52a05d3ab6c5e8fcb641a474e8.js?file=carrito.astro"></script>
+    </details>
+      
+    <h4>1.Estructura HTML (Layout)</h4>
+    <ol>         
+    <li>Contiene un aviso visual condicional (<code>id="cesta-vacia"</code>) que se muestra si no hay artículos.</li>       
+    <li>Cuenta con un contenedor dinámico (<code>id="contenedor-cesta"</code>) donde se insertarán los productos mediante JavaScript.</li>
+    <li>Muestra el resumen del precio total y un botón que activa el API que procesa el pago en <b>Stripe</b>.</li>
+  </ol>
+        
+  <h4>2. Lógica de Cliente (JavaScript en <code>&lt;script&gt;</code>)</h4>
+  <ol>     
+    <li><code>obtenerCesta()</code> / <code>guardarCesta()</code>: Leen y escriben en el <code>localStorage</code> del navegador para mantener la persistencia de los productos agregados. También ejecutan el evento (<code>cestaUpdated</code>) por si se tiene otro componente (como un contador en el header) que necesite actualizarse.</li>        
+    <li><code>cambiarCantidad()</code>: Permite incrementar o disminuir la cantidad de un producto. Si la cantidad baja a 0, elimina automáticamente el producto del array y actualiza el almacenamiento.</li>
+    <li><code>renderizarCesta()</code> Recorre los elementos guardados en la cesta, calcula los subtotales, pinta dinámicamente el HTML de cada fila con Tailwind CSS y actualiza el precio total en pantalla.</li>
+    <li><b>Manejar el proceso de pago con Stripe:</b> Redirige a <code>crear-checkout.ts</code> para procesar el pago.</li>
+  </ol>
+
+  <h3>¿Qué necesitamos hacer para utilizar Stripe para recibir pagos?</h3>
+
+  <p>Como los datos del carrito viven en el navegador (<code>localStorage</code>), el proceso para integrar <b>Stripe</b> con <b>Astro</b> requiere una pasarela segura que se comunique con el servidor. Pasos:</p>
+
+  <h4>1. Instalar Stripe en el proyecto</h4>
+
+  <p>Instalamos el SDK oficial de Node.js para Stripe:</p>
+
+  <pre><code>
+    pnpm add stripe
+    pnpm add -D @types/stripe
+  </code></pre>
+
+  <h4>2. Configuramos las variables de entorno</h4>
+
+  <p>Para hacerlo, solo debes usar tus <b>claves de prueba (test keys)</b> en el archivo <code>.env</code> (en la raíz del proyecto de Astro). Estas claves suelen empezar por <b>sk_test_...</b> para la secreta y <b>pk_test_...</b> para la pública, las cuales posteriormente, se cambian por las reales.</p>
+
+  <p><b>Stripe</b> proporciona un número de tarjeta de prueba oficial para simular pagos exitosos. La tarjeta clásica para un pago exitoso en modo test es el número <b>4242 4242 4242 4242</b> con cualquier fecha de expiración futura y cualquier CVC de 3 dígitos.</p>
+
+  <p>Edita el archivo <code>.env</code> (en la raíz del proyecto de Astro) y agrega las claves de Stripe (puedes obtenerlas en tu panel de control de Stripe):</p>
+
+  <pre><code>
+    STRIPE_SECRET_KEY=sk_test_tu_clave_secreta
+    PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_tu_clave_publica
+  </code></pre>
+
+  <h3>Flujo de trabajo</h3>
+
+  <h4>El botón y <code>/api/crear-checkout.ts</code></h4>
+  
+  <p>El botón del carrito hace un <code>fetch</code> a esta API. La API le pide a <b>Stripe</b> un enlace seguro y el navegador <b>redirige al usuario a la pasarela oficial de Stripe</b>.</p>
+
+  <p><b>Stripe</b> se encarga de crear la página de pago por seguridad, procesa el pago y, si es exitoso, redirige al usuario de vuelta a la web (a una página que llamaremos <code>/exito</code>).</p>
+
+  <details>
+    <summary><mark>crear-checkout.ts</mark></summary>
+    <script src="https://gist.github.com/contenido-vario/456ade52a05d3ab6c5e8fcb641a474e8.js?file=crear-checkout.ts"></script>
+  </details>
+
+  <h4>La página <code>/exito</code></h4>
+
+  <p>En la página <code>exito.astro</code></p>
+
+  <ol>
+    <li>
+      <b>Revisamos la URL</b>: Detectamos si viene el parámetro <code>?session_id=...</code> que Stripe envía de forma automática al redirigir.
+    </li>
+    <li>
+      <b>Validamos con Stripe</b>: Preguntamos directamente a los servidores de Stripe si esa sesión está pagada (<code>payment_status === 'paid'</code>), evitando que cualquiera pueda alterar la página de éxito manualmente.
+    </li>
+    <li>
+      <b>Guardamos en la Base de Datos</b>: Extraemos el <code>userId</code> que guardamos de forma segura en los metadatos y ejecutamos la función <code>crearFactura</code> de <code>src/lib/facturas.ts</code> para hacer el <b>INSERT INTO</b> en tu Postgres mediante <code>pg</code>.
+      <details>
+        <summary><mark>facturas.ts</mark></summary>
+        <script src="https://gist.github.com/contenido-vario/456ade52a05d3ab6c5e8fcb641a474e8.js?file=facturas.ts"></script>
+      </details>      
+    </li>
+    <li>
+      <b>Limpiamos el Carrito en el localStorage</b>: Si todo fue bien, un pequeño script de cliente borra la clave <code>"cesta"</code> del <b>localStorage</b> del navegador para que el usuario no se quede con los productos en la cesta virtual después de haberlos pagado.
+    </li>
+  </ol>
+
+  </main>
+</body>
+</html>
